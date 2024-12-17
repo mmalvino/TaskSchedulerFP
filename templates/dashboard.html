@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Task Status Dashboard</h1>
+    <canvas id="taskChart" width="400" height="200"></canvas>
+
+    <script>
+        // Fetch task data from the server
+        async function fetchData() {
+            const response = await fetch('/status/all');
+            const data = await response.json();
+            
+            // Initialize status counters
+            const statuses = { "PENDING": 0, "STARTED": 0, "SUCCESS": 0, "FAILURE": 0 };
+
+            // Count the number of tasks by status
+            data.tasks.forEach(task => {
+                const status = task.status;
+                if (statuses[status] !== undefined) {
+                    statuses[status]++;
+                }
+            });
+
+            return statuses;
+        }
+
+         // Render chart with task statuses
+        async function renderChart() {
+            const statuses = await fetchData();
+
+            const ctx = document.getElementById('taskChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['PENDING', 'STARTED', 'SUCCESS', 'FAILURE'],
+                    datasets: [{
+                        label: 'Task Status',
+                        data: Object.values(statuses),
+                        backgroundColor: ['orange', 'blue', 'green', 'red']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        renderChart();
+        setInterval(renderChart, 5000); // Update every 5 seconds
+    </script>
+</body>
+</html>
